@@ -26,6 +26,7 @@ vault="cicd"
 # field name and those should be named exactly as the variable name
 item="my-project"
 
+# FUNCTIONS #
 createEnv() {
   if [ -f .env ]; then rm .env; fi
 
@@ -45,13 +46,32 @@ opRun() {
   fi
 }
 
+tfVAR() {
+  while IFS= read -r string; do
+    if [[ $string == "TF_VAR_"* ]]; then
+      continue
+    else
+      echo "TF_VAR_$string"
+    fi
+  done <.env >.tmp
+
+  if [ ! -s .tmp ]; then
+    rm .tmp
+    echo "TF_VAR_ is already present in every variable of the .env file"
+  else
+    echo "TF_VAR_ has been added to every variable in the .env file"
+    mv .tmp .env
+  fi
+}
+
 help() {
   echo "Usage: $0 -[option] [args]"
   echo
   echo "Example:"
   echo "  $0 -t"
   echo "  $0 -r rackup app/server.rb"
-  echo "  $0 -a -r terraform apply"
+  echo "  $0 -a"
+  echo "  $0 -r terraform apply"
   echo
   echo "Setup:"
   echo "  Edit the script and change 'variables', 'vault' and 'item' according to your needs."
@@ -61,12 +81,13 @@ help() {
   echo "  -t               Set .env to Test."
   echo "  -s               Set .env to Staging."
   echo "  -p               Set .env to Production."
-  echo "  -a               Adds the 'TF_VAR_' prefix to all the variables."
+  echo "  -a               Adds the 'TF_VAR_' prefix to all the variables in the current .env file."
   echo "  -d               Deletes the .env file."
   echo "  -h               Print this Help."
   echo
 }
 
+# MAIN LOOP #
 while getopts ":tspadr:h" arg; do
   case "$arg" in
   t) # Set .env to Test
@@ -79,8 +100,11 @@ while getopts ":tspadr:h" arg; do
     createEnv "prod"
     ;;
   a) # Prefix TF_VAR_
-    sed -i '' -e 's/^/TF_VAR_/' .env
-    echo "prefixed "TF_VAR_" to every variable in the .env file!"
+    if [ ! -f .env ]; then
+      echo ".env file doesn't exist! generate the .env file first!"
+      exit 1
+    fi
+    tfVAR
     ;;
   d) # Remove the .env file
     if [ -f .env ]; then
@@ -89,26 +113,26 @@ while getopts ":tspadr:h" arg; do
     else
       echo ".env file doesn't exist!"
     fi
-    exit
+    exit 0
     ;;
   r) # Run 1Password CLI using the .env file
     opRun $OPTARG
-    exit
+    exit 0
     ;;
   h) # Help
     help
-    exit
+    exit 0
     ;;
   \?) # Any option
     echo "Error: Invalid option"
-    exit
+    exit 1
     ;;
   :) # Returns an error when no mandatory argument is passed
     echo "option -$OPTARG requires an argument." >&2
     exit 1
     ;;
   esac
-  exit
 done
 
-help
+# runs help if no options are passed
+if [ $OPTIND -eq 1 ]; then help; fi
