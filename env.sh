@@ -62,12 +62,12 @@ help() {
   echo "  -s               Set .env to Staging."
   echo "  -p               Set .env to Production."
   echo "  -a               Adds the 'TF_VAR_' prefix to all the variables."
-  echo "  -c               Deletes the .env file."
+  echo "  -d               Deletes the .env file."
   echo "  -h               Print this Help."
   echo
 }
 
-while getopts ":tspacr:h" arg; do
+while getopts ":tspadr:h" arg; do
   case "$arg" in
   t) # Set .env to Test
     createEnv "test"
@@ -82,7 +82,7 @@ while getopts ":tspacr:h" arg; do
     sed -i '' -e 's/^/TF_VAR_/' .env
     echo "prefixed "TF_VAR_" to every variable in the .env file!"
     ;;
-  c) # Remove the .env file
+  d) # Remove the .env file
     if [ -f .env ]; then
       rm .env
       echo ".env file has been removed!"
