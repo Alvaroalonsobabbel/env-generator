@@ -70,8 +70,7 @@ help() {
   echo "Example:"
   echo "  $0 -t"
   echo "  $0 -r rackup app/server.rb"
-  echo "  $0 -a"
-  echo "  $0 -r terraform apply"
+  echo "  $0 -a -r terraform apply"
   echo
   echo "Setup:"
   echo "  Edit the script and change 'variables', 'vault' and 'item' according to your needs."
