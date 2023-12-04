@@ -37,15 +37,6 @@ createEnv() {
   echo ".env set to $1!"
 }
 
-opRun() {
-  if [ -f .env ]; then
-    op run --env-file="./.env" -- $1
-  else
-    echo ".env file doesn't exist! set the .env first."
-    exit 1
-  fi
-}
-
 tfVAR() {
   while IFS= read -r string; do
     if [[ $string == "TF_VAR_"* ]]; then
@@ -65,18 +56,16 @@ tfVAR() {
 }
 
 help() {
-  echo "Usage: $0 -[option] [args]"
+  echo "Usage: $0 -[option]"
   echo
   echo "Example:"
   echo "  $0 -t"
-  echo "  $0 -r rackup app/server.rb"
-  echo "  $0 -a -r terraform apply"
+  echo "  $0 -p -a"
   echo
   echo "Setup:"
   echo "  Edit the script and change 'variables', 'vault' and 'item' according to your needs."
   echo
   echo "Options:"
-  echo "  -r <command>     Runs 1Password CLI injecting the .env file into the passed command."
   echo "  -t               Set .env to Test."
   echo "  -s               Set .env to Staging."
   echo "  -p               Set .env to Production."
@@ -84,10 +73,12 @@ help() {
   echo "  -d               Deletes the .env file."
   echo "  -h               Print this Help."
   echo
+  echo "Run 1Pwd CLI using the generated .env file:"
+  echo "  op run --env-file="./.env"  <script>"
 }
 
 # MAIN LOOP #
-while getopts ":tspadr:h" arg; do
+while getopts ":tspadh" arg; do
   case "$arg" in
   t) # Set .env to Test
     createEnv "test"
@@ -112,10 +103,6 @@ while getopts ":tspadr:h" arg; do
     else
       echo ".env file doesn't exist!"
     fi
-    exit 0
-    ;;
-  r) # Run 1Password CLI using the .env file
-    opRun $OPTARG
     exit 0
     ;;
   h) # Help
